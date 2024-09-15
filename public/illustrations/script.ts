@@ -41,47 +41,45 @@ function sortByColor<T extends Object>(arr: T[], key: keyof T) {
   });
 }
 
-function loadImage(imageUrl: string, onProgress: (progress: number) => void): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    let notifiedNotComputable = false;
+function loadImage(imageUrl: string, onProgress: (progress: number) => void, onLoad: (url: string) => void): XMLHttpRequest {
+  const xhr = new XMLHttpRequest();
+  let notifiedNotComputable = false;
 
-    xhr.open("GET", imageUrl, true);
-    xhr.responseType = "arraybuffer";
+  xhr.open("GET", imageUrl, true);
+  xhr.responseType = "arraybuffer";
 
-    xhr.addEventListener("progress", (ev) => {
-      if (ev.lengthComputable) {
-        onProgress(ev.loaded / ev.total);
-      } else {
-        if (!notifiedNotComputable) {
-          notifiedNotComputable = true;
-          onProgress(-1);
-        }
+  xhr.addEventListener("progress", (ev) => {
+    if (ev.lengthComputable) {
+      onProgress(ev.loaded / ev.total);
+    } 
+    else {
+      if (!notifiedNotComputable) {
+        notifiedNotComputable = true;
+        onProgress(-1);
       }
-    });
-
-    xhr.addEventListener("loadend", (ev) => {
-      if (!xhr.status.toString().match(/^2/)) {
-        reject(xhr);
-
-        return;
-      }
-
-      const options: { type?: string } = {}
-      const headers = xhr.getAllResponseHeaders();
-      const m = headers.match(/^Content-Type\:\s*(.*?)$/mi);
-
-      if (m && m[1]) {
-        options.type = m[1];
-      }
-
-      resolve(window.URL.createObjectURL(
-        new Blob([xhr.response], options)
-      ));
-    });
-
-    xhr.send();
+    }
   });
+
+  xhr.addEventListener("loadend", (ev) => {
+    if (!xhr.status.toString().match(/^2/)) 
+      throw xhr;
+    
+    const options: { type?: string } = {}
+    const headers = xhr.getAllResponseHeaders();
+    const m = headers.match(/^Content-Type\:\s*(.*?)$/mi);
+
+    if (m && m[1]) {
+      options.type = m[1];
+    }
+
+    onLoad(window.URL.createObjectURL(
+      new Blob([xhr.response], options)
+    ));
+  });
+
+  xhr.send();
+
+  return xhr;
 }
 
 
@@ -115,6 +113,8 @@ function start() {
     let imgEl: HTMLImageElement = el.querySelector<HTMLImageElement>("img")!;
     imgEl.loading = "eager";
 
+    let xhr: XMLHttpRequest | null = null, sendXhrTimeout: NodeJS.Timeout;
+
     progressEl.style.transition = "none";
     window.requestAnimationFrame(() => {
       progressEl.style.opacity = "1";
@@ -123,10 +123,10 @@ function start() {
       window.requestAnimationFrame(() => {
         progressEl.style.transition = "200ms ease";
 
-        setTimeout(() => {
-          loadImage(el.getAttribute("data-large-img-src")!, (progress) => {
+        sendXhrTimeout = setTimeout(() => {
+          xhr = loadImage(el.getAttribute("data-large-img-src")!, (progress) => {
             progressEl.style.width = (window.innerWidth + 6) * progress + "px";
-          }).then(src => {
+          }, (src) => {
             imgEl.src = src;
     
             setTimeout(() => {
@@ -145,7 +145,7 @@ function start() {
     }
 
     function handleResize(cover = false) {
-      let padding;
+      let padding: number;
       if (cover) padding = 0;
       else padding = Math.min(20, window.innerWidth * 0.025);
 
@@ -324,6 +324,11 @@ function start() {
         el.style.height = oldEl.clientHeight + "px";
 
         imgEl.src = el.getAttribute("data-compressed-img-src")!;
+
+        clearTimeout(sendXhrTimeout);
+        if (xhr) xhr.abort();
+        xhr = null;
+        progressEl.style.opacity = "0";
 
         window.removeEventListener("resize", () => handleResize());
       });
