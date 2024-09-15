@@ -37,7 +37,7 @@ The discord client should be online, and your website should be hosted on `local
 
 ### Misc
 
-I've made `--loli` command to troll one of my friend, you can use this as a ping command though.
+I made `--loli` command to troll one of my friend, you can use this as a ping command though.
 
 Don't ever use `--worship`. Trust me.
 
