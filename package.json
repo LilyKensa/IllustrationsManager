@@ -1,0 +1,26 @@
+{
+  "name": "images",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:src": "tsc --project tsconfig.src.json",
+    "build:script": "tsc --project tsconfig.script.json",
+    "build": "npm run build:src && npm run build:script"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.4",
+    "axios": "^1.7.7",
+    "crypto": "^1.0.1",
+    "discord.js": "^14.16.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "sharp": "^0.33.5",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,9 @@
+.git-old
+node_modules
+dist
+data
+private
+public/illustrations/images
+public/illustrations/images_compressed
+.env
+*.bat
