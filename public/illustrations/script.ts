@@ -62,7 +62,7 @@ function loadImage(imageUrl: string, onProgress: (progress: number) => void, onL
 
   xhr.addEventListener("loadend", (ev) => {
     if (!xhr.status.toString().match(/^2/)) 
-      throw xhr;
+      return;
     
     const options: { type?: string } = {}
     const headers = xhr.getAllResponseHeaders();
