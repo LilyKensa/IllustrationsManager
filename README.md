@@ -45,4 +45,4 @@ Don't ever use `--worship`. Trust me.
 
 Reply to a message and type `--add` will add all the images (including URLs and attachments) of that image. You will see a ☑️ appear to the message.
 
-Using `--clearmessages <Begin> <End>`, you can delete a range of message at once, be careful when using this.
+Using `--clearmessages <begin> <end>`, you can delete a range of message at once, be careful when using this.
