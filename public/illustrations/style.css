@@ -111,3 +111,14 @@ img {
   z-index: 20;
   box-shadow: 0 1px 4px #00000099;
 }
+
+h1, h1 > a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-info-icon {
+  width: 32px;
+  height: 32px;
+}
