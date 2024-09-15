@@ -3,6 +3,7 @@ node_modules
 dist
 data
 private
+public/illustrations/script.js
 public/illustrations/images
 public/illustrations/images_compressed
 .env

@@ -262,6 +262,8 @@ function start() {
           mouse.handleDrag();
         },
         wheel(ev: WheelEvent) {
+          if (!mouse.dragging) return;
+          
           mouse.scale *= ev.deltaY > 0 ? 0.8 : 1.25;
           if (mouse.scale < 1) mouse.scale = 1;
           mouse.handleDrag();
