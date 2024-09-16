@@ -87,19 +87,19 @@ function loadImage(imageUrl: string, onProgress: (progress: number) => void, onL
 //*============================================= main =============================================*
 //+================================================================================================+
 
-function start() {
-  // Sets up three history items and places the user in the middle of those three.
-  window.history.pushState({ _fileexplorer: "back" }, document.title);
-  window.history.pushState({ _fileexplorer: "main" }, document.title);
-  window.history.pushState({ _fileexplorer: "forward" }, document.title);
-  window.history.back();
+// Sets up three history items and places the user in the middle of those three.
+window.history.pushState({ _fileexplorer: "back" }, document.title);
+window.history.pushState({ _fileexplorer: "main" }, document.title);
+window.history.pushState({ _fileexplorer: "forward" }, document.title);
+window.history.back();
 
+const data = shuffle<ImageInfo>(
+  JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!)
+);
+
+function restart() {
   let container = document.querySelector<HTMLDivElement>(".gallery")!;
   let containerWidth = container.getBoundingClientRect().width;
-
-  const data = shuffle<ImageInfo>(
-    JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!)
-  );
 
   function showFullscreenImage(ev: MouseEvent) {
     let fullscreenContainer = document.querySelector<HTMLDivElement>(".fullscreen-container")!,
@@ -174,6 +174,7 @@ function start() {
 
       return [width, height];
     }
+    const handleResizeWithEmtpyArguments = () => handleResize();
 
     window.requestAnimationFrame(() => {
       document.body.style.overflowY = "hidden";
@@ -200,7 +201,7 @@ function start() {
 
           window.requestAnimationFrame(() => {
             handleResize();
-            window.addEventListener("resize", () => handleResize());
+            window.addEventListener("resize", handleResizeWithEmtpyArguments);
           });
         });
       });
@@ -330,7 +331,7 @@ function start() {
         xhr = null;
         progressEl.style.opacity = "0";
 
-        window.removeEventListener("resize", () => handleResize());
+        window.removeEventListener("resize", handleResizeWithEmtpyArguments);
       });
 
       setTimeout(() => {
@@ -420,8 +421,8 @@ function start() {
   }
 }
 
-start();
+restart();
 
 window.addEventListener("resize", () => {
-  start();
+  restart();
 });
