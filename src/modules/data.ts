@@ -35,7 +35,6 @@ export async function init() {
       await fsp.writeFile(file.path, file.content);
 
   await importImages();
-  await compressImages();
 
   console.log("Images initialized.");
 }
@@ -83,6 +82,8 @@ export async function importImages() {
     await fsp.writeFile("./data/currentIndex.txt", index.toString());
     await fsp.writeFile("./data/imagesData.json", JSON.stringify(imagesData, null, 2));
   }
+
+  await compressImages();
   
   newCount += addedCount;
   return { newCount, oldCount, addedCount, duplicatedCount };
