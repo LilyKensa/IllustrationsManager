@@ -1,4 +1,5 @@
 import dc from "discord.js";
+import crypto from "node:crypto";
 
 import * as DataManager from "./data";
 
@@ -78,7 +79,7 @@ export async function handle(msg: dc.Message) {
 
     case "random":
       const imageList = await DataManager.list();
-      const image = imageList[Math.floor(Math.random() * imageList.length)];
+      const image = imageList[crypto.randomInt(0, imageList.length)];
 
       msg.reply({ 
         embeds: [
