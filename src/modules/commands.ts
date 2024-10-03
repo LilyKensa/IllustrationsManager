@@ -48,7 +48,11 @@ export async function fetchArgs(fullArgs: string[], count: number, defaults?: st
 }
 
 export async function handle(msg: dc.Message) {  
-  const safely = (p: Promise<any>) => p.catch((err) => msg.reply(`Encountered error: ${err.message}`));
+  let error = false;
+  const safely = (p: Promise<any>) => p.catch((err) => {
+    error = true;
+    msg.reply(`Encountered error: ${err.message}`);
+  });
 
   let args = await safely(parseArgs(msg.content));
 
@@ -102,8 +106,15 @@ export async function handle(msg: dc.Message) {
         break;
       }
 
-      const rfrMsg = await msg.fetchReference();
-      if (!rfrMsg) break;
+      let rfrMsg: dc.Message | undefined;
+      if (msg.reference) 
+        rfrMsg = await msg.fetchReference();
+      else
+        rfrMsg = (await msg.channel.messages.fetch({
+          before: msg.id,
+          limit: 1
+        })).at(0);
+      if (!rfrMsg) return;
       
       for (let file of rfrMsg.attachments.values())
         await safely(DataManager.download(file.url));
@@ -111,8 +122,25 @@ export async function handle(msg: dc.Message) {
       const urlRegex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&//=]*)\.(?:jpg|jpeg|png|gif|bmp|webp|heic)(?:\?.*)?/g;
       for (let url of rfrMsg.content.match(urlRegex) ?? [])
         await safely(DataManager.download(url));
+
+      for (let e of rfrMsg.embeds)
+        if (e.image)
+          await safely(DataManager.download(e.image.url));
       
       rfrMsg.react("☑️");
+      break;
+
+    case "delete":
+    case "del":
+      if (!config.admins.includes(msg.author.id)) {
+        msg.reply("You don't have the permission to use this command lol");
+        break;
+      }
+      
+      let [ imageToDel ] = await safely(fetchArgs(args, 2, []));      
+      let imageToDelPath = imageToDel + ".png";
+      await safely(DataManager.del(imageToDelPath));
+      if (!error) msg.reply(`Deleted \`${imageToDelPath}\`.`);
       break;
 
     case "clearmessages":

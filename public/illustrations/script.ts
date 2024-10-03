@@ -87,12 +87,6 @@ function loadImage(imageUrl: string, onProgress: (progress: number) => void, onL
 //*============================================= main =============================================*
 //+================================================================================================+
 
-// Sets up three history items and places the user in the middle of those three.
-window.history.pushState({ _fileexplorer: "back" }, document.title);
-window.history.pushState({ _fileexplorer: "main" }, document.title);
-window.history.pushState({ _fileexplorer: "forward" }, document.title);
-window.history.back();
-
 const data = shuffle<ImageInfo>(
   JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!)
 );
@@ -107,13 +101,29 @@ function restart() {
       progressEl = document.querySelector<HTMLDivElement>(".progress")!;
 
     fullscreenContainer.style.pointerEvents = "all";
+
     let oldEl: HTMLDivElement = this as HTMLDivElement;
     let el = oldEl.cloneNode(true) as HTMLDivElement;
+
     fullscreenContainer.appendChild(el);
+
     let imgEl: HTMLImageElement = el.querySelector<HTMLImageElement>("img")!;
     imgEl.loading = "eager";
+    imgEl.style.opacity = "1";
 
     let xhr: XMLHttpRequest | null = null, sendXhrTimeout: NodeJS.Timeout;
+
+    const imgName = el.getAttribute("data-img-name")!;
+    const compressedImageSrc = el.getAttribute("data-compressed-img-src")!;
+    const largeImageSrc = el.getAttribute("data-large-img-src")!;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has("view"))
+      window.history.pushState(
+        { fullscreen: true, imgName, compressedImageSrc, largeImageSrc }, 
+        document.title, 
+        `?view=${imgName}`
+      );
 
     progressEl.style.transition = "none";
     window.requestAnimationFrame(() => {
@@ -124,7 +134,7 @@ function restart() {
         progressEl.style.transition = "200ms ease";
 
         sendXhrTimeout = setTimeout(() => {
-          xhr = loadImage(el.getAttribute("data-large-img-src")!, (progress) => {
+          xhr = loadImage(largeImageSrc, (progress) => {
             progressEl.style.width = (window.innerWidth + 6) * progress + "px";
           }, (src) => {
             imgEl.src = src;
@@ -277,28 +287,16 @@ function restart() {
     fullscreenContainer.addEventListener("mousemove", mouse.listeners.move);
     fullscreenContainer.addEventListener("wheel", mouse.listeners.wheel);
 
-    function handleHistoryBackButton(ev: MouseEvent) {
-      if (ev.button === 3) {
-        ev.preventDefault();
+    function handlePopstate(ev: PopStateEvent) {
+      if (!ev.state || !ev.state.fullscreen)
         closeLargeImage();
-      }
     }
-    window.addEventListener("mouseup", handleHistoryBackButton);
-
-    function handlePopState(ev: PopStateEvent) {
-      if (ev.state && ev.state._fileexplorer) {
-        if (ev.state._fileexplorer === "back") {
-          window.history.forward();
-          closeLargeImage();
-        }
-      }
-    }
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", handlePopstate);
 
     function handleClick(ev: MouseEvent) {
       if (mouse.dragging) return;
 
-      closeLargeImage();
+      window.history.back();
     }
     fullscreenContainer.addEventListener("click", handleClick);
 
@@ -309,8 +307,7 @@ function restart() {
       fullscreenContainer.removeEventListener("wheel", mouse.listeners.wheel);
 
       fullscreenContainer.removeEventListener("click", handleClick);
-      window.removeEventListener("mouseup", handleHistoryBackButton);
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("popstate", handlePopstate);
 
       window.requestAnimationFrame(() => {
         backdropEl.classList.remove("show");
@@ -381,6 +378,7 @@ function restart() {
       imgContainerEl.classList.add("image-container");
       imgContainerEl.addEventListener("click", showFullscreenImage);
       imgContainerEl.style.backgroundColor = img.color;
+      imgContainerEl.setAttribute("data-img-name", img.path);
       imgContainerEl.setAttribute("data-large-img-src", `/illustrations/images/${img.path}`);
       imgContainerEl.setAttribute("data-compressed-img-src", `/illustrations/images_compressed/${img.path}`);
       if (line.content.length >= 4)
@@ -426,3 +424,32 @@ restart();
 window.addEventListener("resize", () => {
   restart();
 });
+
+function checkParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!urlParams.has("view")) return;
+
+  let imgName = urlParams.get("view");
+
+  const el = document.querySelector(`[data-img-name='${imgName}']`)!;
+  if (!el) return;
+
+  const imgEl = el.querySelector("img")!;
+
+  imgEl.src = imgEl.src;
+  imgEl.loading = "eager";
+
+  function onTargetImageLoad() {
+    imgEl.removeEventListener("load", onTargetImageLoad);
+
+    el.dispatchEvent(new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      button: 0
+    }));
+  }
+  imgEl.addEventListener("load", onTargetImageLoad);
+}
+checkParams();
+window.addEventListener("popstate", () => checkParams());

@@ -4,7 +4,7 @@ import crypto from "crypto";
 // TODO Calling sharp(input) frequently can be slow and unnecessary
 
 export async function hash(input: string | Buffer): Promise<string> {
-  const buffer = await sharp(input).toBuffer();
+  const buffer = await sharp(input).raw().ensureAlpha().toBuffer();
   const hash = crypto.createHash("sha256").update(buffer).digest("hex");
   return hash;
 }

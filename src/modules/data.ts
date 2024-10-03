@@ -21,9 +21,12 @@ export async function getCurrentIndex() {
 export async function getImagesData(): Promise<ImageInfo[]> {
   return JSON.parse((await fsp.readFile("./data/imagesData.json")).toString());
 }
+export async function setImagesData(data: ImageInfo[]) {
+  await fsp.writeFile("./data/imagesData.json", JSON.stringify(data, null, 2));
+}
 
 export async function init() {
-  for (let folder of [ "./data/", "./private/images_input", "./private/images_duplicated", "./public/illustrations/images", "./public/illustrations/images_compressed" ])
+  for (let folder of [ "./data/", "./private/images_input", "./private/images_duplicated", "./private/images_deleted", "./public/illustrations/images", "./public/illustrations/images_compressed" ])
     if (!fs.existsSync(folder))
       await fsp.mkdir(folder, { recursive: true });
   
@@ -43,12 +46,12 @@ export async function importImages() {
   let index = await getCurrentIndex();
   let imagesData = await getImagesData();
 
-  let oldCount = imagesData.length, newCount = oldCount, addedCount = 0, duplicatedCount = 0;
+  let oldCount = imagesData.length, newCount = oldCount, count = 0, duplicatedCount = 0;
 
   try {
     for (let file of await fsp.readdir("./private/images_input")) {
       index++;
-      addedCount++;
+      count++;
 
       const oldPath = `./private/images_input/${file}`;
       const oldBuffer = await fsp.readFile(oldPath);
@@ -80,13 +83,13 @@ export async function importImages() {
   }
   finally {
     await fsp.writeFile("./data/currentIndex.txt", index.toString());
-    await fsp.writeFile("./data/imagesData.json", JSON.stringify(imagesData, null, 2));
+    setImagesData(imagesData);
   }
 
   await compressImages();
   
-  newCount += addedCount;
-  return { newCount, oldCount, addedCount, duplicatedCount };
+  newCount += count;
+  return { newCount, oldCount, addedCount: count - duplicatedCount, duplicatedCount };
 }
 
 export async function compressImages() {
@@ -105,10 +108,27 @@ export async function list() {
 }
 
 export async function read(path: string) {
-  const fullPath = `./images/${path}`;
+  const fullPath = `./public/illustrations/images/${path}`;
   if (fs.existsSync(fullPath)) 
     return fsp.readFile(fullPath);
   return null;
+}
+
+export async function del(path: string) {
+  const fullPath = `./public/illustrations/images/${path}`;
+
+  let data = await getImagesData();
+
+  let index = data.findIndex(d => d.path === path);
+  if (index === -1) throw new Error("Image does not exist");
+
+  data.splice(index, 1);
+  setImagesData(data);
+
+  fs.unlinkSync(`./public/illustrations/images_compressed/${path}`);
+  fs.renameSync(fullPath, `./private/images_deleted/${path}`);
+
+  return true;
 }
 
 export async function download(url: string) {
