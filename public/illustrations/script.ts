@@ -366,6 +366,9 @@ function restart() {
     }
   }
 
+  if (!lines.at(-1)?.content.length)
+    lines.pop();
+
   container.innerHTML = "";
 
   for (let line of lines) {

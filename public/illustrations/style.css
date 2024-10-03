@@ -123,3 +123,13 @@ h1, h1 > a {
   width: 32px;
   height: 32px;
 }
+
+.footer {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.footer hr {
+  border: 1px solid #aaa;
+  border-radius: 2px;
+}
