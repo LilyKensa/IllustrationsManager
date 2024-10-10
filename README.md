@@ -48,3 +48,18 @@ Reply to a message and type `--add` will add all the images (including URLs and 
 Use `--delete <id>` to delete an image.
 
 Using `--clearmessages <begin> <end>`, you can delete a range of message at once, be careful when using this.
+
+|Commands|Aliases|
+|-|-|
+|`--delete`|`--del`|
+|`--clearmessages`|`--cmsg`|
+
+## Change Log
+
+### v1.1
+
+- `--delete` command
+- Better image hashing
+- Pixiv download support (including [ppixiv](https://github.com/ppixiv/ppixiv/) plugin page specification)
+- Error pages
+- Page footer

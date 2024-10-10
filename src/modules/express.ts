@@ -25,7 +25,19 @@ router.get("/", (req, res) => {
   // TODO ^ Storing data like this is very bad, tbh ^
 });
 
+router.get("/images/*", (req, res) => {
+  res.status(404).render("error", {
+    code: 404,
+    message: "Image not found :("
+  });
+})
+
+router.get("*", (req, res) => {
+  res.redirect("/illustrations/");
+})
+
 app.use("/illustrations/", router);
+
 
 export async function startServer() {
   return new Promise<void>((resolve, reject) => {

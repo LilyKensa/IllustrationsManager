@@ -1,4 +1,4 @@
-import dc from "discord.js";
+import * as dc from "discord.js";
 import crypto from "node:crypto";
 
 import * as DataManager from "./data";
@@ -51,22 +51,22 @@ export async function handle(msg: dc.Message) {
   let error = false;
   const safely = (p: Promise<any>) => p.catch((err) => {
     error = true;
-    msg.reply(`Encountered error: ${err.message}`);
+    msg.reply(`Encountered error:\n\`\`\`\n${err}\n\`\`\``);
   });
 
   let args = await safely(parseArgs(msg.content));
 
   switch (args[0]) {
-    case "loli":
+    case "loli": {
       msg.reply("Roger's favorite!");
       break;
-
-    case "worship":
+    }
+    case "worship": {
       let [ who ] = await safely(fetchArgs(args, 1, [`<@${msg.author.id}>`]));
       msg.reply(`${who} 🛐 🛐 🛐`);
       break;
-
-    case "import":
+    }
+    case "import": {
       const reMsg = await msg.reply("Importing...");
       let result = await DataManager.importImages();
       reMsg.reply([
@@ -80,10 +80,51 @@ export async function handle(msg: dc.Message) {
         "duplicated"
       ].join(" "));
       break;
+    }
+    case "get": {
+      let [ index ] = await safely(fetchArgs(args, 1));
 
-    case "random":
+      const imageList = await DataManager.list();
+      const image = imageList.find(i => i.path === `${index}.png`);
+
+      let typingTimeout: NodeJS.Timeout;
+      function keepTyping() {
+        if (msg.channel.isSendable()) msg.channel.sendTyping();
+
+        typingTimeout = setTimeout(keepTyping, 5000);
+      }
+      keepTyping();
+
+      if (image)
+        await msg.reply({ 
+          embeds: [
+            new dc.EmbedBuilder()
+              .setColor(image.color)
+              .setImage(`attachment://${image.path}`)
+              .setFooter({
+                text: `${image.path} - ${image.info.width} × ${image.info.height} (${(image.info.size / 1000).toFixed(2)} KB)`
+              })
+          ],
+          files: [
+            new dc.AttachmentBuilder(`./public/illustrations/images/${image.path}`, { name: image.path })
+          ] 
+        }).then(() => clearTimeout(typingTimeout));
+      else
+        msg.reply(`Image #${index} not found`);
+
+      break;
+    }
+    case "random": {
       const imageList = await DataManager.list();
       const image = imageList[crypto.randomInt(0, imageList.length)];
+      
+      let typingTimeout: NodeJS.Timeout;
+      function keepTyping() {
+        if (msg.channel.isSendable()) msg.channel.sendTyping();
+
+        typingTimeout = setTimeout(keepTyping, 5000);
+      }
+      keepTyping();
 
       msg.reply({ 
         embeds: [
@@ -96,24 +137,24 @@ export async function handle(msg: dc.Message) {
         ],
         files: [
           new dc.AttachmentBuilder(`./public/illustrations/images/${image.path}`, { name: image.path })
-        ] 
-      });
+        ]
+      }).then(() => clearTimeout(typingTimeout));;
       break;
-
-    case "add":
+    }
+    case "add": {
       if (!config.admins.includes(msg.author.id)) {
         msg.reply("You don't have the permission to use this command lol");
         break;
       }
 
-      let rfrMsg: dc.Message | undefined;
+      let rfrMsg: dc.Message;
       if (msg.reference) 
         rfrMsg = await msg.fetchReference();
       else
         rfrMsg = (await msg.channel.messages.fetch({
           before: msg.id,
           limit: 1
-        })).at(0);
+        })).at(0)!;
       if (!rfrMsg) return;
       
       for (let file of rfrMsg.attachments.values())
@@ -123,15 +164,55 @@ export async function handle(msg: dc.Message) {
       for (let url of rfrMsg.content.match(urlRegex) ?? [])
         await safely(DataManager.download(url));
 
-      for (let e of rfrMsg.embeds)
-        if (e.image)
-          await safely(DataManager.download(e.image.url));
+      let pixivMatched = false;
+
+      let match: RegExpExecArray | null;
+
+      let modifiedContent = rfrMsg.content.replace(/phixiv/g, "pixiv");
+
+      // Parse input string and minus one or zero
+      let pisamooz = (input: string) => input ? Number.parseInt(input) - 1 : 0;
+
+      const plainPixivRegex = /(https:\/\/www\.pixiv\.net\/artworks\/\d+)\/?(\[(\d+)\])?/g;
+      while (match = plainPixivRegex.exec(modifiedContent)) {
+        let cleanUrl = match[1];
+        let page = pisamooz(match[3]);
+
+        await safely(DataManager.downloadPixiv(cleanUrl, page));
+      }
+
+      const ppixivArtworksRegex = /(https:\/\/www\.pixiv\.net\/artworks\/\d+)#ppixiv(\?page=(\d+))?/g;
+      while (match = ppixivArtworksRegex.exec(modifiedContent)) {
+        if (!match) continue;
+        
+        pixivMatched = true;
+        
+        let cleanUrl = match[1];
+        let page = pisamooz(match[3]);
+
+        await safely(DataManager.downloadPixiv(cleanUrl, page));
+      }
+
+      const ppixivOtherRegex = /https:\/\/www\.pixiv\.net\/[^0-9]+#ppixiv.*illust_id=(\d+).*page=(\d+)/g;
+      while (match = ppixivOtherRegex.exec(modifiedContent)) {
+        if (!match) continue;
+                
+        let id = match[1];
+        let page = pisamooz(match[2]);
+
+        await safely(DataManager.downloadPixiv(`https://www.pixiv.net/artworks/${id}`, page));
+      }
+
+      if (!pixivMatched)
+        for (let e of rfrMsg.embeds)
+          if (e.image)
+            await safely(DataManager.download(e.image.url));
       
       rfrMsg.react("☑️");
       break;
-
+    }
     case "delete":
-    case "del":
+    case "del": {
       if (!config.admins.includes(msg.author.id)) {
         msg.reply("You don't have the permission to use this command lol");
         break;
@@ -142,9 +223,9 @@ export async function handle(msg: dc.Message) {
       await safely(DataManager.del(imageToDelPath));
       if (!error) msg.reply(`Deleted \`${imageToDelPath}\`.`);
       break;
-
+    }
     case "clearmessages":
-    case "cmsg":
+    case "cmsg": {
       if (!config.admins.includes(msg.author.id)) {
         msg.reply("You don't have the permission to use this command lol");
         break;
@@ -169,5 +250,6 @@ export async function handle(msg: dc.Message) {
         await m.delete();
         await new Promise(r => setTimeout(r, 1000));
       }
+    }
   }
 }

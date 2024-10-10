@@ -1,5 +1,6 @@
 import fs, { promises as fsp } from "node:fs";
 import axios from "axios";
+import * as nexo from "nexo-aio-downloader";
 
 import * as ImageManager from "./image";
 
@@ -131,6 +132,8 @@ export async function del(path: string) {
   return true;
 }
 
+let stamp = () => Math.floor(Date.now() * 100);
+
 export async function download(url: string) {
   return axios.get(url, {
     responseType: "arraybuffer"
@@ -138,12 +141,40 @@ export async function download(url: string) {
     if (!(r.headers["content-type"] as string).startsWith("image/"))
       throw new Error(`The URL \`${url}\` does not provide an image source`);
 
-    let imageName = Math.floor((Date.now() + Math.random()) * 100);
     let imageType = (r.headers["content-type"] as string).slice("image/".length);
 
     await fsp.writeFile(
-      `./private/images_input/${imageName}.${imageType}`,
+      `./private/images_input/${stamp()}.${imageType}`,
       r.data
     );
   });
+}
+
+export interface PixivIllust {
+  creator: string,
+  status: boolean,
+  data: {
+    title: string,
+    alt: string,
+    user: string,
+    desc: string,
+    like: number,
+    view: number,
+    comment: number,
+    tags: string,
+    result: Array<{ type: string, buffer: Buffer }>
+  }
+}
+
+const pixivCookie = /^x+$/.test(process.env.PIXIV_COOKIE!) ? undefined : process.env.PIXIV_COOKIE;
+
+export async function downloadPixiv(url: string, page: number) {
+  const illust: PixivIllust = await nexo.pixiv(url, pixivCookie);
+  if (page >= illust.data.result.length) 
+    throw new Error(`Page ${page + 1} not found, target only have ${illust.data.result.length} pages`);
+  let result = illust.data.result[page];
+  await fsp.writeFile(
+    `./private/images_input/${stamp()}.${result.type}`,
+    result.buffer
+  );
 }
