@@ -63,3 +63,11 @@ Using `--clearmessages <begin> <end>`, you can delete a range of message at once
 - Pixiv download support (including [ppixiv](https://github.com/ppixiv/ppixiv/) plugin page specification)
 - Error pages
 - Page footer
+
+### v1.2
+
+- Fixed pixiv download twice
+- Add options
+  - Image sort method
+  - Force compact / full display mode
+  - Filter aspect ratio

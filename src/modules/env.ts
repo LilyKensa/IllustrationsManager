@@ -9,7 +9,7 @@ export function checkEnv() {
   if (!process.env.IMAGE_COMPRESS_QUALITY)
     reject("`IMAGE_COMPRESS_QUALITY` required!");
   if (Number.isNaN(Number.parseInt(process.env.IMAGE_COMPRESS_QUALITY!)))
-    reject("`IMAGE_COMPRESS_QUALITY` needs to be an number!");
+    reject("`IMAGE_COMPRESS_QUALITY` needs to be a number!");
   if (Number.parseInt(process.env.IMAGE_COMPRESS_QUALITY!) <= 0)
     reject("`IMAGE_COMPRESS_QUALITY` needs to be greater than zero!");
   if (!process.env.DISCORD_BOT_TOKEN || /[^x]/.test(process.env.DISCORD_BOT_TOKEN!) === null)

@@ -173,14 +173,6 @@ export async function handle(msg: dc.Message) {
       // Parse input string and minus one or zero
       let pisamooz = (input: string) => input ? Number.parseInt(input) - 1 : 0;
 
-      const plainPixivRegex = /(https:\/\/www\.pixiv\.net\/artworks\/\d+)\/?(\[(\d+)\])?/g;
-      while (match = plainPixivRegex.exec(modifiedContent)) {
-        let cleanUrl = match[1];
-        let page = pisamooz(match[3]);
-
-        await safely(DataManager.downloadPixiv(cleanUrl, page));
-      }
-
       const ppixivArtworksRegex = /(https:\/\/www\.pixiv\.net\/artworks\/\d+)#ppixiv(\?page=(\d+))?/g;
       while (match = ppixivArtworksRegex.exec(modifiedContent)) {
         if (!match) continue;
@@ -192,16 +184,33 @@ export async function handle(msg: dc.Message) {
 
         await safely(DataManager.downloadPixiv(cleanUrl, page));
       }
+      modifiedContent.replace(ppixivArtworksRegex, "");
 
       const ppixivOtherRegex = /https:\/\/www\.pixiv\.net\/[^0-9]+#ppixiv.*illust_id=(\d+).*page=(\d+)/g;
       while (match = ppixivOtherRegex.exec(modifiedContent)) {
         if (!match) continue;
                 
+        pixivMatched = true;
+
         let id = match[1];
         let page = pisamooz(match[2]);
 
         await safely(DataManager.downloadPixiv(`https://www.pixiv.net/artworks/${id}`, page));
       }
+      modifiedContent.replace(ppixivOtherRegex, "");
+
+      const plainPixivRegex = /(https:\/\/www\.pixiv\.net\/artworks\/\d+)\/?(\[(\d+)\])?/g;
+      while (match = plainPixivRegex.exec(modifiedContent)) {
+        if (!match) continue;
+
+        pixivMatched = true;
+
+        let cleanUrl = match[1];
+        let page = pisamooz(match[3]);
+
+        await safely(DataManager.downloadPixiv(cleanUrl, page));
+      }
+      modifiedContent.replace(plainPixivRegex, "");
 
       if (!pixivMatched)
         for (let e of rfrMsg.embeds)

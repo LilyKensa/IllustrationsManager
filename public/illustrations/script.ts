@@ -30,14 +30,64 @@ function shuffle<T>(array: T[]) {
   return array;
 }
 
-function sortByColor<T extends Object>(arr: T[], key: keyof T) {
+type HSL = {
+  h: number;
+  s: number;
+  l: number;
+};
+
+function hexToHSL(hex: string): HSL {
+  // Remove the leading '#' if present
+  hex = hex.replace(/^#/, '');
+
+  // Parse r, g, b values
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  // Find min and max values to get lightness
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
+
+  if (max !== min) {
+    const delta = max - min;
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+    switch (max) {
+      case r:
+        h = (g - b) / delta + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / delta + 2;
+        break;
+      case b:
+        h = (r - g) / delta + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  // Convert h, s, l to percentages and return
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
+}
+
+function sortByColor<T extends { color: string }>(arr: T[]) {
   return arr.sort((a, b) => {
     // Convert the hex color to an integer for comparison
-    const colorA = parseInt(String(a[key]).slice(1), 16);
-    const colorB = parseInt(String(b[key]).slice(1), 16);
+    const colorA = hexToHSL(a.color);
+    const colorB = hexToHSL(b.color);
 
     // Sort based on the numerical value of the colors
-    return colorA - colorB;
+    return 10 * colorA.h + colorA.l 
+      - 10 * colorB.h - colorB.l 
+      + (config.slightlyRandom ? Math.random() * 25 - 12.5 : 0);
   });
 }
 
@@ -87,9 +137,15 @@ function loadImage(imageUrl: string, onProgress: (progress: number) => void, onL
 //*============================================= main =============================================*
 //+================================================================================================+
 
-const data = shuffle<ImageInfo>(
-  JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!)
-);
+const originalData = JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!);
+let data = shuffle<ImageInfo>([ ... originalData ]);
+
+let config = {
+  sort: "random",
+  slightlyRandom: false,
+  align: "auto",
+  filter: "none"
+}
 
 function restart() {
   let container = document.querySelector<HTMLDivElement>(".gallery")!;
@@ -353,10 +409,18 @@ function restart() {
       break;
     }
 
-    aspectRatioSum += data[i].info.width / data[i].info.height;
+    let aspectRatio = data[i].info.width / data[i].info.height;
+    if (config.filter === "tall" && aspectRatio > 0.9) continue;
+    if (config.filter === "wide" && aspectRatio < 1.1111) continue;
+    if (config.filter === "square" && (aspectRatio < 0.9 || aspectRatio > 1.1111)) continue;
+
+    aspectRatioSum += aspectRatio;
     currentLine.push(data[i]);
 
-    if (320 * aspectRatioSum + (currentLine.length - 1) * 10 > containerWidth || currentLine.length >= 6 || window.innerWidth < 480) {
+    if (320 * aspectRatioSum + (currentLine.length - 1) * 10 > containerWidth 
+      || currentLine.length >= 6 
+      || (config.align === "auto" && window.innerWidth < 480) 
+      || config.align === "full") {
       lines.push({
         aspectRatio: aspectRatioSum,
         content: currentLine
@@ -404,11 +468,9 @@ function restart() {
 
         if ((
           (top > 0 && top < window.innerHeight) ||
-          (bottom > 0 && bottom < window.innerHeight)
-        ) && (
-            (left > 0 && left < window.innerWidth) ||
-            (right > 0 && right < window.innerWidth)
-          ) && imgEl.complete) imgEl.style.opacity = "1";
+          (bottom > 0 && bottom < window.innerHeight) ||
+          (top < 0 && bottom > window.innerHeight)
+        ) && imgEl.complete) imgEl.style.opacity = "1";
         else imgEl.style.opacity = "0";
       }
       checkIfInView();
@@ -421,12 +483,8 @@ function restart() {
     container.appendChild(lineEl);
   }
 }
-
 restart();
-
-window.addEventListener("resize", () => {
-  restart();
-});
+window.addEventListener("resize", restart);
 
 function checkParams() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -456,3 +514,42 @@ function checkParams() {
 }
 checkParams();
 window.addEventListener("popstate", () => checkParams());
+
+document.querySelector(".open-options")?.addEventListener("click", () => {
+ document.querySelector(".options")!.classList.toggle("show");
+});
+document.querySelector("#apply-options")?.addEventListener("click", () => {
+  config.sort = document.querySelector<HTMLSelectElement>(".options #sort")!.value;
+  config.slightlyRandom = document.querySelector<HTMLInputElement>(".options #slightly-random")!.checked;
+  config.align = document.querySelector<HTMLSelectElement>(".options #align")!.value;
+  config.filter = document.querySelector<HTMLSelectElement>(".options #filter-aspect-ratio")!.value;
+
+  switch (config.sort) {
+    case "random": {
+      data = shuffle<ImageInfo>([ ... originalData ]);
+      break;
+    }
+    case "id": {
+      data = ([ ... originalData ] as ImageInfo[]).sort((a, b) => 
+        Number.parseInt(a.path) 
+        - Number.parseInt(b.path) 
+        + (config.slightlyRandom ? 8 * Math.random() - 4 : 0)
+      );
+      break;
+    }
+    case "color": {
+      data = sortByColor<ImageInfo>([ ... originalData ]);
+      break;
+    }
+  }
+
+  restart();
+});
+document.querySelector("#sort")?.addEventListener("change", (ev) => {
+  let checkboxContainer = document.querySelector(".slightly-random-container");
+
+  if ((ev.target as HTMLSelectElement).value === "random")
+    checkboxContainer?.classList.remove("show");
+  else
+    checkboxContainer?.classList.add("show");
+});
