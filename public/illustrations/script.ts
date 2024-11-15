@@ -461,9 +461,7 @@ function restart() {
       function checkIfInView() {
         const {
           top,
-          left,
-          bottom,
-          right
+          bottom
         } = imgEl.getBoundingClientRect();
 
         if ((
@@ -515,10 +513,18 @@ function checkParams() {
 checkParams();
 window.addEventListener("popstate", () => checkParams());
 
-document.querySelector(".open-options")?.addEventListener("click", () => {
+document.querySelector<HTMLSpanElement>(".open-options")!.addEventListener("click", () => {
  document.querySelector(".options")!.classList.toggle("show");
 });
-document.querySelector("#apply-options")?.addEventListener("click", () => {
+document.querySelectorAll<SVGSVGElement>(".header-icon").forEach((svgEl) => {
+  svgEl.addEventListener("click", (ev) => {
+    svgEl.style.animationName = "";
+    window.requestAnimationFrame(() => {
+      svgEl.style.animationName = "spin";
+    });
+  });
+});
+document.querySelector<HTMLInputElement>("#apply-options")!.addEventListener("click", () => {
   config.sort = document.querySelector<HTMLSelectElement>(".options #sort")!.value;
   config.slightlyRandom = document.querySelector<HTMLInputElement>(".options #slightly-random")!.checked;
   config.align = document.querySelector<HTMLSelectElement>(".options #align")!.value;
@@ -545,7 +551,7 @@ document.querySelector("#apply-options")?.addEventListener("click", () => {
 
   restart();
 });
-document.querySelector("#sort")?.addEventListener("change", (ev) => {
+document.querySelector("#sort")!.addEventListener("change", (ev) => {
   let checkboxContainer = document.querySelector(".slightly-random-container");
 
   if ((ev.target as HTMLSelectElement).value === "random")

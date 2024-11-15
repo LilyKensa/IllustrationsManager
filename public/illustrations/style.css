@@ -127,10 +127,20 @@ h1, h1 > * {
   height: 32px;
   cursor: pointer;
   transition: none;
+  transition: 200ms ease;
+  will-change: transform;
+  animation-iteration-count: 1;
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(.6, .21, .46, 1.29);
 }
-.header-icon:hover {
-  transform: rotate(360deg);
-  transition: 800ms cubic-bezier(.6,.21,.46,1.29);
+
+@keyframes spin {
+  0% {
+    transform: none;
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .footer {
@@ -171,6 +181,10 @@ input::-webkit-inner-spin-button {
 
 .reactive {
   transition: 200ms;
+  will-change: transform;
+}
+.reactive:hover {
+  transform: scale(1.05);
 }
 .reactive:active {
   transform: scale(0.95);
