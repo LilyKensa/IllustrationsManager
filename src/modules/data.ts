@@ -170,6 +170,8 @@ const pixivCookie = /^x+$/.test(process.env.PIXIV_COOKIE!) ? undefined : process
 
 export async function downloadPixiv(url: string, page: number) {
   const illust: PixivIllust = await nexo.pixiv(url, pixivCookie);
+  if (!illust.data)
+    throw new Error("Pixiv Downloader is broken!");
   if (page >= illust.data.result.length) 
     throw new Error(`Page ${page + 1} not found, target only have ${illust.data.result.length} pages`);
   let result = illust.data.result[page];
