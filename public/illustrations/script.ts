@@ -602,6 +602,45 @@ document.querySelector(".login-button")?.addEventListener("click", async () => {
   checkAdmin();
 });
 
+async function upload(files: FileList | File[] | DataTransferItemList | DataTransferItem[]) {
+  let successCount = 0, failedCount = 0;
+  let promises: Promise<void>[] = [];
+
+  for (let file of files) {
+    if (file.type !== "image/png" && file.type !== "image/jpeg") {
+      // failedCount++;
+      continue;
+    }
+
+    if (file instanceof DataTransferItem) 
+      file = file.getAsFile()!;
+
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    promises.push(new Promise((resolve) => {
+      reader.addEventListener("load", async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+  
+        let res = await fetch("/illustrations/upload/", {
+          method: "POST",
+          body: formData
+        });
+  
+        if (res.ok) successCount++;
+        else failedCount++;
+
+        resolve();
+      });
+    }));
+  }
+
+  for (let p of promises) await p;
+
+  return [ successCount, failedCount ];
+}
+
 const dropZone = document.querySelector<HTMLDivElement>(".drop-zone")!;
 
 // Show drop zone when dragging a file
@@ -638,37 +677,22 @@ window.addEventListener("drop", async (ev) => {
   const files = ev.dataTransfer?.files;
   if (!files || !files.length) return;
 
-  let successCount = 0, failedCount = 0;
-  let promises: Promise<void>[] = [];
+  const [ successCount, failedCount ] = await upload(files);
 
-  for (let file of files) {
-    if (file.type !== "image/png" && file.type !== "image/jpeg") {
-      failedCount++;
-      continue;
-    }
-
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-
-    promises.push(new Promise((resolve) => {
-      reader.addEventListener("load", async () => {
-        const formData = new FormData();
-        formData.append("file", file);
-  
-        let res = await fetch("/illustrations/upload/", {
-          method: "POST",
-          body: formData
-        });
-  
-        if (res.ok) successCount++;
-        else failedCount++;
-
-        resolve();
-      });
-    }));
-  }
-
-  for (let p of promises) await p;
-
-  window.alert(`${successCount} uploaded & ${failedCount} failed`);
+  if (successCount || failedCount)
+    window.alert(`${successCount} uploaded & ${failedCount} failed`);
 });
+
+window.addEventListener("paste", async (ev) => {
+  const clipboardData = ev.clipboardData;
+  if (!clipboardData) return;
+
+  const items = clipboardData.items;
+  
+  const [ successCount, failedCount ] = await upload(items);
+
+  if (successCount || failedCount)
+    window.alert(`${successCount} uploaded & ${failedCount} failed`);
+});
+
+// TODO ^ Add custom UI ^

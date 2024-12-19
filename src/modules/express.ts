@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import multer from "multer";
 import fs from "fs";
-import path from "path";
+import path, { resolve } from "path";
 
 const adminPassword = process.env.GALLERY_UPLOAD_PASSWORD;
 
@@ -56,7 +56,18 @@ router.post("/login", (req, res) => {
     res.send("Wrong password!");
 });
 
-const upload = multer({ dest: "./private/images_input/" });
+const upload = multer({ 
+  storage: multer.diskStorage({
+    destination: (req, file, resolve) => {
+      resolve(null, "./private/images_input/");
+    },
+    filename: (req, file, resolve) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+      const fileExtension = file.originalname.split(".").pop(); // Get the file extension
+      resolve(null, file.fieldname + "-" + uniqueSuffix + "." + fileExtension);
+    }
+  })
+});
 
 router.post("/upload", (req, res, next) => {
   if (req.cookies.admin !== adminPassword) {

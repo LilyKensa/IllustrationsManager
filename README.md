@@ -64,6 +64,7 @@ Click on the login logo and enter the password you set in `.env` to log yourself
 
 And now you can drag and drop images onto the website to upload it!
 
+※ For large image you might need to configure size limits of your proxy server ([Nginx](https://stackoverflow.com/questions/26717013/how-to-edit-nginx-conf-to-increase-file-size-upload) / [Apache](https://stackoverflow.com/questions/74811649/how-to-increase-file-upload-size-in-apache-config))  
 ※ Remember to `--import`.
 
 ## Change Log
@@ -89,3 +90,8 @@ And now you can drag and drop images onto the website to upload it!
 - Really fixed pixiv download twice
 - Added drag and drop feature to website
 - Added `--clearmessage` permissions check
+
+### v1.3.1
+
+- Added paste directly (Ctrl + C) feature to website
+- Fixed saved file name
