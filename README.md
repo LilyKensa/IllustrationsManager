@@ -93,5 +93,5 @@ And now you can drag and drop images onto the website to upload it!
 
 ### v1.3.1
 
-- Added paste directly (Ctrl + C) feature to website
+- Added paste directly (`Ctrl` + `V`) feature to website
 - Fixed saved file name
