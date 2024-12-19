@@ -29,4 +29,6 @@ export function checkEnv() {
     console.warn("Strange environment: `GALLERY_TITLE` is empty");
   if (!process.env.GALLERY_HEADER)
     console.warn("Strange environment: `GALLERY_HEADER` is empty");
+  if (!process.env.GALLERY_UPLOAD_PASSWORD)
+    console.warn("Strange environment: `GALLERY_UPLOAD_PASSWORD` is empty");
 }

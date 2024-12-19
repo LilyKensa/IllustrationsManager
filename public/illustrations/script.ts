@@ -559,3 +559,116 @@ document.querySelector("#sort")!.addEventListener("change", (ev) => {
   else
     checkboxContainer?.classList.add("show");
 });
+
+let admin = false;
+
+async function checkAdmin() {
+  let text = await fetch("/illustrations/admin/").then(r => r.text());
+
+  let adminIndicator = document.querySelector<HTMLSpanElement>(".admin-indicator")!;
+  let loginButton = document.querySelector<HTMLSpanElement>(".login-button")!;
+
+  if (text === "yes") {
+    admin = true;
+    adminIndicator.style.display = "";
+    loginButton.style.display = "none";
+  }
+  else {
+    admin = false;
+    adminIndicator.style.display = "none";
+    loginButton.style.display = "";
+  }
+}
+checkAdmin();
+
+document.querySelector(".login-button")?.addEventListener("click", async () => {
+  let password = window.prompt("Enter Admin Password");
+  if (!password) return;
+
+  let res = await fetch("/illustrations/login/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      password
+    })
+  });
+
+  if (!res.ok) {
+    window.alert("Got rejected :(");
+  }
+
+  checkAdmin();
+});
+
+const dropZone = document.querySelector<HTMLDivElement>(".drop-zone")!;
+
+// Show drop zone when dragging a file
+window.addEventListener("dragenter", (ev) => {
+  if (!admin) return;
+
+  ev.preventDefault();
+  dropZone.style.display = "flex";
+});
+
+// Hide drop zone when leaving
+window.addEventListener("dragleave", (ev) => {
+  if (!admin) return;
+
+  if (ev.target === dropZone || ev.relatedTarget === null) {
+    dropZone.style.display = "none";
+  }
+});
+
+// Prevent default behavior for dragover
+window.addEventListener("dragover", (ev) => {
+  if (!admin) return;
+
+  ev.preventDefault();
+});
+
+// Handle file drop
+window.addEventListener("drop", async (ev) => {
+  if (!admin) return;
+
+  ev.preventDefault();
+  dropZone.style.display = "none";
+
+  const files = ev.dataTransfer?.files;
+  if (!files || !files.length) return;
+
+  let successCount = 0, failedCount = 0;
+  let promises: Promise<void>[] = [];
+
+  for (let file of files) {
+    if (file.type !== "image/png" && file.type !== "image/jpeg") {
+      failedCount++;
+      continue;
+    }
+
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    promises.push(new Promise((resolve) => {
+      reader.addEventListener("load", async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+  
+        let res = await fetch("/illustrations/upload/", {
+          method: "POST",
+          body: formData
+        });
+  
+        if (res.ok) successCount++;
+        else failedCount++;
+
+        resolve();
+      });
+    }));
+  }
+
+  for (let p of promises) await p;
+
+  window.alert(`${successCount} uploaded & ${failedCount} failed`);
+});

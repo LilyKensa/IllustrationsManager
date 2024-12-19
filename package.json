@@ -13,13 +13,16 @@
   "license": "ISC",
   "dependencies": {
     "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.5.4",
     "axios": "^1.7.9",
+    "cookie-parser": "^1.4.7",
     "crypto": "^1.0.1",
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
     "nexo-aio-downloader": "^1.4.1",
     "sharp": "^0.33.5",
     "typescript": "^5.6.2"

@@ -47,7 +47,7 @@ export async function fetchArgs(fullArgs: string[], count: number, defaults?: st
   return args;
 }
 
-export async function handle(msg: dc.Message) {  
+export async function handle(client: dc.Client, msg: dc.Message) {  
   let error = false;
   const safely = (p: Promise<any>) => p.catch((err) => {
     error = true;
@@ -237,6 +237,12 @@ export async function handle(msg: dc.Message) {
     case "cmsg": {
       if (!config.admins.includes(msg.author.id)) {
         msg.reply("You don't have the permission to use this command lol");
+        break;
+      }
+
+      if (msg.channel.isDMBased()) break;
+      if (!msg.channel.permissionsFor(client.user!.id)?.has(dc.PermissionFlagsBits.ManageMessages)) {
+        msg.reply("I can't delete messages in this channel");
         break;
       }
 

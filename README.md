@@ -43,6 +43,10 @@ Don't ever use `--worship`. Trust me.
 
 ## Admin
 
+Admin are those who can manage the images.
+
+### Discord
+
 Reply to a message and type `--add` will add all the images (including URLs and attachments) of that image. You will see a ☑️ appear to the message.
 
 Use `--delete <id>` to delete an image.
@@ -53,6 +57,14 @@ Using `--clearmessages <begin> <end>`, you can delete a range of message at once
 |-|-|
 |`--delete`|`--del`|
 |`--clearmessages`|`--cmsg`|
+
+### Website
+
+Click on the login logo and enter the password you set in `.env` to log yourself in.
+
+And now you can drag and drop images onto the website to upload it!
+
+※ Remember to `--import`.
 
 ## Change Log
 
@@ -71,3 +83,9 @@ Using `--clearmessages <begin> <end>`, you can delete a range of message at once
   - Image sort method
   - Force compact / full display mode
   - Filter aspect ratio
+
+### v1.3
+
+- Really fixed pixiv download twice
+- Added drag and drop feature to website
+- Added `--clearmessage` permissions check

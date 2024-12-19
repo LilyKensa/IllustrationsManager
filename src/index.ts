@@ -31,7 +31,7 @@ client.on(dc.Events.ClientReady, async (c) => {
 
 client.on(dc.Events.MessageCreate, async (msg) => {
   if (msg.content.startsWith(CommandManager.config.prefix))
-    CommandManager.handle(msg).catch(console.error); 
+    CommandManager.handle(client, msg).catch(console.error); 
     // TODO ^ Fix the `DOMException [AbortError]: This operation was aborted` when uploading big images
 });
 

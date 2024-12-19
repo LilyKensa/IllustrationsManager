@@ -28,7 +28,7 @@
       <%= header %>
       <a class="reactive" href="https://github.com/LilyKensa/IllustrationsManager" target="_blank">
         <svg class="header-icon" viewBox="0 0 24 24">
-          <circle cx="12" cy="11.9999" r="9" stroke="#eeeeee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></circle>
+          <circle cx="12" cy="12" r="9" stroke="#eeeeee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></circle>
           <rect x="12" y="8" width="0.01" height="0.01" stroke="#eeeeee" stroke-width="3.75" stroke-linejoin="round"></rect>
           <path d="M12 12V16" stroke="#eeeeee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
@@ -40,6 +40,16 @@
           <path d="M21 17h-7.18a3 3 0 0 0-5.64 0H3a1 1 0 0 0 0 2h5.18a3 3 0 0 0 5.64 0H21a1 1 0 0 0 0-2zm-10 2a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"></path>
         </svg>
       </span> 
+      <span class="admin-indicator reactive" style="display: none;">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 19.2857L15.8 21L20 17M4 21C4 17.134 7.13401 14 11 14C12.4872 14 13.8662 14.4638 15 15.2547M15 7C15 9.20914 13.2091 11 11 11C8.79086 11 7 9.20914 7 7C7 4.79086 8.79086 3 11 3C13.2091 3 15 4.79086 15 7Z" stroke="#eeeeee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </span>
+      <span class="login-button reactive" style="display: none;">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H15M11 16L15 12M15 12L11 8M15 12H3" stroke="#eeeeee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </span>
     </h1>
 
     <div class="options">
@@ -90,6 +100,15 @@
     <div class="fullscreen-container">
       <div class="backdrop"></div>
       <div class="progress"></div>
+    </div>
+
+    <div class="drop-zone">
+      <h1>
+        Drop to upload
+        <svg fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19,13a1,1,0,0,0-1,1v.38L16.52,12.9a2.79,2.79,0,0,0-3.93,0l-.7.7L9.41,11.12a2.85,2.85,0,0,0-3.93,0L4,12.6V7A1,1,0,0,1,5,6h7a1,1,0,0,0,0-2H5A3,3,0,0,0,2,7V19a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V14A1,1,0,0,0,19,13ZM5,20a1,1,0,0,1-1-1V15.43l2.9-2.9a.79.79,0,0,1,1.09,0l3.17,3.17,0,0L15.46,20Zm13-1a.89.89,0,0,1-.18.53L13.31,15l.7-.7a.77.77,0,0,1,1.1,0L18,17.21ZM22.71,4.29l-3-3a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-3,3a1,1,0,0,0,1.42,1.42L18,4.41V10a1,1,0,0,0,2,0V4.41l1.29,1.3a1,1,0,0,0,1.42,0A1,1,0,0,0,22.71,4.29Z"></path>
+        </svg>
+      </h1>
     </div>
 
     <script src="/illustrations/script.js"></script>
