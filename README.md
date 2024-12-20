@@ -33,19 +33,15 @@ Follow the instructions in `.env`, and you're good to go!
 
 The discord client should be online, and your website should be hosted on `localhost:5470/illustrations/` (Or other port if you changed it)
 
-## Discord Commands
-
-### Misc
-
-I made `--loli` command to troll one of my friend, you can use this as a ping command though.
-
-Don't ever use `--worship`. Trust me.
-
-## Admin
+## Administrations
 
 Admin are those who can manage the images.
 
 ### Discord
+
+I made `--loli` command to troll one of my friend, you can use this as a ping command though.
+
+Don't ever use `--worship`. Trust me.
 
 Reply to a message and type `--add` will add all the images (including URLs and attachments) of that image. You will see a ☑️ appear to the message.
 
