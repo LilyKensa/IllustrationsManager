@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import multer from "multer";
 import fs from "fs";
-import path, { resolve } from "path";
+import path from "path";
 
 const adminPassword = process.env.GALLERY_UPLOAD_PASSWORD;
 
@@ -27,10 +27,12 @@ router.get("/", (req, res) => {
   res.render("gallery", { 
     title: process.env.GALLERY_TITLE,
     header: process.env.GALLERY_HEADER,
-    admin: req.cookies.admin === adminPassword,
-    dataStr: fs.readFileSync("./data/imagesData.json").toString() 
+    admin: req.cookies.admin === adminPassword
   });
-  // TODO ^ Storing data like this is very bad, tbh ^
+});
+
+router.get("/data", (req, res) => {
+  res.send(JSON.parse(fs.readFileSync("./data/imagesData.json").toString()));
 });
 
 router.get("/images/*", (req, res) => {

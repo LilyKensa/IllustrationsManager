@@ -137,8 +137,7 @@ function loadImage(imageUrl: string, onProgress: (progress: number) => void, onL
 //*============================================= main =============================================*
 //+================================================================================================+
 
-const originalData = JSON.parse(document.querySelector<HTMLDivElement>(".data")!.textContent!);
-let data = shuffle<ImageInfo>([ ... originalData ]);
+let originalData: ImageInfo[], data: ImageInfo[];
 
 let config = {
   sort: "random",
@@ -147,9 +146,39 @@ let config = {
   filter: "none"
 }
 
+fetch("/illustrations/data/").then(r => r.json()).then(json => {
+  originalData = json;
+  sort();
+
+  restart();
+  window.addEventListener("resize", restart);
+});
+
+function sort() {
+  switch (config.sort) {
+    case "random": {
+      data = shuffle<ImageInfo>([ ... originalData ]);
+      break;
+    }
+    case "id": {
+      data = ([ ... originalData ] as ImageInfo[]).sort((a, b) => 
+        Number.parseInt(a.path) 
+        - Number.parseInt(b.path) 
+        + (config.slightlyRandom ? 8 * Math.random() - 4 : 0)
+      );
+      break;
+    }
+    case "color": {
+      data = sortByColor<ImageInfo>([ ... originalData ]);
+      break;
+    }
+  }
+}
+
 function restart() {
   let container = document.querySelector<HTMLDivElement>(".gallery")!;
-  let containerWidth = container.getBoundingClientRect().width;
+  // let containerWidth = container.getBoundingClientRect().width;
+  let containerWidth = window.innerWidth - (window.innerWidth > 480 ? 12 : 0);
 
   function showFullscreenImage(ev: MouseEvent) {
     let fullscreenContainer = document.querySelector<HTMLDivElement>(".fullscreen-container")!,
@@ -265,8 +294,8 @@ function restart() {
 
           el.style.transition = "200ms ease";
 
+          handleResize();          
           window.requestAnimationFrame(() => {
-            handleResize();
             window.addEventListener("resize", handleResizeWithEmtpyArguments);
           });
         });
@@ -481,8 +510,6 @@ function restart() {
     container.appendChild(lineEl);
   }
 }
-restart();
-window.addEventListener("resize", restart);
 
 function checkParams() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -530,25 +557,7 @@ document.querySelector<HTMLInputElement>("#apply-options")!.addEventListener("cl
   config.align = document.querySelector<HTMLSelectElement>(".options #align")!.value;
   config.filter = document.querySelector<HTMLSelectElement>(".options #filter-aspect-ratio")!.value;
 
-  switch (config.sort) {
-    case "random": {
-      data = shuffle<ImageInfo>([ ... originalData ]);
-      break;
-    }
-    case "id": {
-      data = ([ ... originalData ] as ImageInfo[]).sort((a, b) => 
-        Number.parseInt(a.path) 
-        - Number.parseInt(b.path) 
-        + (config.slightlyRandom ? 8 * Math.random() - 4 : 0)
-      );
-      break;
-    }
-    case "color": {
-      data = sortByColor<ImageInfo>([ ... originalData ]);
-      break;
-    }
-  }
-
+  sort();
   restart();
 });
 document.querySelector("#sort")!.addEventListener("change", (ev) => {
